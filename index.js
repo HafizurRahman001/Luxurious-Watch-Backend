@@ -26,6 +26,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 client.connect(err => {
     const productsCollection = client.db("luxurious-watch").collection("products");
     const purchaseInformation = client.db("luxurious-watch").collection("purchase-info");
+    const reviewCollection = client.db("luxurious-watch").collection("reviews");
+    const usersCollection = client.db("luxurious-watch").collection("usersInfo");
     // perform actions on the collection object
 
     //get all products from db by get method
@@ -80,15 +82,15 @@ client.connect(err => {
         const filter = { _id: ObjectId(id) };
         const deleteProduct = await productsCollection.deleteOne(filter);
         res.send(deleteProduct);
-        console.log(deleteProduct);
     })
 
     //get user's all order
     app.get('/my-order/:email', async (req, res) => {
         const email = req.params.email;
         const filter = { email: email };
-        const myOrders = await purchaseInformation.find(filter).toArray();
-        res.send(myOrders);
+        const filteredOrder = await purchaseInformation.find(filter).toArray();
+        res.send(filteredOrder);
+        console.log(filteredOrder);
     });
 
     //cancel order
@@ -97,9 +99,58 @@ client.connect(err => {
         const filter = { _id: ObjectId(id) };
         const result = await purchaseInformation.deleteOne(filter);
         res.send(result);
-        console.log(result);
+    });
+    //store review to database
+    app.post('/review', async (req, res) => {
+        const review = req.body;
+        const storeReview = await reviewCollection.insertOne(review);
+        res.send(storeReview);
+    });
+    //store user ifo to data base
+    app.post('/users', async (req, res) => {
+        const user = req.body;
+        console.log(user);
+        const result = await usersCollection.insertOne(user);
+        res.send(result);
+    });
+    app.put('/users', async (req, res) => {
+        const user = req.body;
+        const filter = { email: user?.email };
+        const options = { upsert: true };
+        const updateDoc = { $set: user };
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
+        res.send(result);
     });
 
+    // update user info
+    app.put('/admin', async (req, res) => {
+        const userEmail = req.body.email;
+        const filter = { email: userEmail };
+        const updateRole = {
+            $set: { role: 'admin' }
+        };
+        const result = await usersCollection.updateOne(filter, updateRole);
+        res.send(result)
+    });
+
+    // check is admin or not
+    app.get('/users/:email', async (req, res) => {
+        const email = req.params.email;
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        let isAdmin = false;
+        if (user?.role === 'admin') {
+            isAdmin = true;
+        }
+        res.send({ admin: isAdmin });
+    });
+
+    //find all user review from database
+    app.get('/user-review', async (req, res) => {
+        const userReviews = await reviewCollection.find({}).toArray();
+        res.send(userReviews);
+        console.log(userReviews);
+    })
 
 
 
