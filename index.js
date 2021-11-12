@@ -151,7 +151,6 @@ client.connect(err => {
         const productInfo = req.body;
         const insertedProduct = await productsCollection.insertOne(productInfo);
         res.send(insertedProduct);
-        console.log(insertedProduct);
     });
 
 });
