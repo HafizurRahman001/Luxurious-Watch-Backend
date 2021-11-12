@@ -14,14 +14,10 @@ app.use(express.json());
 
 
 
-// ${process.env.DB_USER}: ${process.env.DB_PASS}
-//DB_USER=mydbuser1      DB_PASS=Q0AlzP3yLxbR7NDs
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h7sw1.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// console.log(uri);
 
 client.connect(err => {
     const productsCollection = client.db("luxurious-watch").collection("products");
@@ -65,7 +61,6 @@ client.connect(err => {
             $set: { status: 'Shipped' }
         };
         const result = await purchaseInformation.updateOne(filter, updateProduct);
-        console.log(result);
         res.send(result);
     });
 
@@ -90,7 +85,6 @@ client.connect(err => {
         const filter = { email: email };
         const filteredOrder = await purchaseInformation.find(filter).toArray();
         res.send(filteredOrder);
-        console.log(filteredOrder);
     });
 
     //cancel order
@@ -100,16 +94,17 @@ client.connect(err => {
         const result = await purchaseInformation.deleteOne(filter);
         res.send(result);
     });
+
     //store review to database
     app.post('/review', async (req, res) => {
         const review = req.body;
         const storeReview = await reviewCollection.insertOne(review);
         res.send(storeReview);
     });
+
     //store user ifo to data base
     app.post('/users', async (req, res) => {
         const user = req.body;
-        console.log(user);
         const result = await usersCollection.insertOne(user);
         res.send(result);
     });
@@ -149,24 +144,15 @@ client.connect(err => {
     app.get('/user-review', async (req, res) => {
         const userReviews = await reviewCollection.find({}).toArray();
         res.send(userReviews);
-        console.log(userReviews);
-    })
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //add new product to database
+    app.post('/add-product', async (req, res) => {
+        const productInfo = req.body;
+        const insertedProduct = await productsCollection.insertOne(productInfo);
+        res.send(insertedProduct);
+        console.log(insertedProduct);
+    });
 
 });
 
