@@ -155,7 +155,7 @@ client.connect(err => {
 
 });
 
-
+// default server checking
 app.get('/', (req, res) => {
     res.send('welcome home page');
 });
